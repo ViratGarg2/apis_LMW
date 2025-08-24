@@ -1,0 +1,2204 @@
+openapi: 3.0.3
+info:
+  title: Learning Management System CRUD API
+  description: A comprehensive API for managing users, courses, modules, and learning data in a Learning Management System
+  version: 1.0.0
+  contact:
+    name: LMS API Support
+    email: support@lms.example.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:8000
+    description: Local development server
+  - url: https://api.lms.example.com
+    description: Production server
+
+tags:
+  - name: System
+    description: System and health endpoints
+  - name: Users
+    description: User management operations
+  - name: Courses
+    description: Course management operations
+  - name: Modules
+    description: Module management operations
+  - name: Topics
+    description: Topic management operations
+  - name: Demographics
+    description: User demographic information
+  - name: Learning Preferences
+    description: User learning preferences and styles
+  - name: Diagnostic Skills
+    description: User diagnostic skill assessments
+  - name: Enrollments
+    description: User course and module enrollments
+  - name: Metrics
+    description: User module performance metrics
+  - name: Quizzes
+    description: Quiz and assessment management
+  - name: Combined Endpoints
+    description: Combined data operations for multiple tables
+
+paths:
+  /:
+    get:
+      tags:
+        - System
+      summary: API root endpoint
+      description: Returns basic information about the API
+      responses:
+        '200':
+          description: API information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Learning Management System CRUD API
+                  version:
+                    type: string
+                    example: 1.0.0
+                  documentation:
+                    type: string
+                    example: /docs
+                  interactive_docs:
+                    type: string
+                    example: /docs
+                  openapi_spec:
+                    type: string
+                    example: /openapi.json
+
+  /api/users/{user_id}/data/{topic_id}/{module_id}:
+    get:
+      tags:
+        - Users
+      summary: Get user data for pre.py processing
+      description: Retrieves comprehensive user data including metrics, preferences, and skills
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: User UUID
+        - name: topic_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Topic identifier
+        - name: module_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Module identifier
+      responses:
+        '200':
+          description: User data retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDataResponse'
+        '404':
+          description: User data not found
+        '500':
+          description: Internal server error
+
+  /api/users/{user_id}/data:
+    post:
+      tags:
+        - Users
+      summary: Create or update user data
+      description: Creates or updates user module metrics, learning preferences, and diagnostic skills
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: User UUID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserDataInput'
+      responses:
+        '200':
+          description: User data created/updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: User data created/updated
+        '500':
+          description: Internal server error
+
+    put:
+      tags:
+        - Users
+      summary: Update user data
+      description: Updates user module metrics, learning preferences, and diagnostic skills
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: User UUID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserDataInput'
+      responses:
+        '200':
+          description: User data updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: User data created/updated
+        '500':
+          description: Internal server error
+
+    delete:
+      tags:
+        - Users
+      summary: Delete user data
+      description: Deletes user module metrics for a specific module and course
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: User UUID
+        - name: module_id
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Module identifier
+        - name: course_id
+          in: query
+          required: false
+          schema:
+            type: string
+            default: course123
+          description: Course identifier
+      responses:
+        '200':
+          description: User data deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: User data deleted
+        '404':
+          description: User data not found
+        '500':
+          description: Internal server error
+
+  /api/users/{user_id}/processed_data:
+    post:
+      tags:
+        - Users
+      summary: Save processed data from pre.py
+      description: Saves processed data results from machine learning processing
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: User UUID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                module_id:
+                  type: string
+                  description: Module identifier
+                processed_results:
+                  type: object
+                  description: Processed data results
+              additionalProperties: true
+      responses:
+        '200':
+          description: Processed data saved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Processed data saved
+        '500':
+          description: Internal server error
+
+  /api/users:
+    get:
+      tags:
+        - Users
+      summary: Get all users with their data
+      description: Retrieves all users with comprehensive data for batch processing
+      responses:
+        '200':
+          description: Users retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserDataResponse'
+        '500':
+          description: Internal server error
+
+    post:
+      tags:
+        - Users
+      summary: Add a new user
+      description: Creates a new user in the system
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserInput'
+      responses:
+        '200':
+          description: User added successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: User added
+                  user_id:
+                    type: string
+                    format: uuid
+        '400':
+          description: Invalid user data
+        '500':
+          description: Internal server error
+
+  /api/users/all:
+    get:
+      tags:
+        - Users
+      summary: Get all users
+      description: Retrieves all users from the users table
+      responses:
+        '200':
+          description: Users retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+        '500':
+          description: Internal server error
+
+  /api/courses:
+    get:
+      tags:
+        - Courses
+      summary: Get all courses
+      description: Retrieves all courses from the system
+      responses:
+        '200':
+          description: Courses retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Course'
+        '500':
+          description: Internal server error
+
+    post:
+      tags:
+        - Courses
+      summary: Add courses
+      description: Adds one or more courses to the system
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: '#/components/schemas/CourseInput'
+                - type: array
+                  items:
+                    $ref: '#/components/schemas/CourseInput'
+      responses:
+        '200':
+          description: Courses added successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Courses added
+                  courses:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        course_id:
+                          type: string
+                          format: uuid
+                        course_name:
+                          type: string
+        '500':
+          description: Internal server error
+
+  /api/modules:
+    get:
+      tags:
+        - Modules
+      summary: Get all modules
+      description: Retrieves all modules from the system
+      responses:
+        '200':
+          description: Modules retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Module'
+        '500':
+          description: Internal server error
+
+    post:
+      tags:
+        - Modules
+      summary: Add modules
+      description: Adds one or more modules to the system
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: '#/components/schemas/ModuleInput'
+                - type: array
+                  items:
+                    $ref: '#/components/schemas/ModuleInput'
+      responses:
+        '200':
+          description: Modules added successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Modules added
+                  modules:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        module_id:
+                          type: string
+                          format: uuid
+                        course_id:
+                          type: string
+                        module_name:
+                          type: string
+        '500':
+          description: Internal server error
+
+  /api/topics:
+    get:
+      tags:
+        - Topics
+      summary: Get all topics
+      description: Retrieves all topics from the system
+      responses:
+        '200':
+          description: Topics retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Topic'
+        '500':
+          description: Internal server error
+
+    post:
+      tags:
+        - Topics
+      summary: Add topics
+      description: Adds one or more topics to the system
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: '#/components/schemas/TopicInput'
+                - type: array
+                  items:
+                    $ref: '#/components/schemas/TopicInput'
+      responses:
+        '200':
+          description: Topics added successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Topics added
+                  topics:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        topic_id:
+                          type: string
+                          format: uuid
+                        course_id:
+                          type: string
+                        module_id:
+                          type: string
+                        topic_name:
+                          type: string
+        '500':
+          description: Internal server error
+
+  /api/demographics:
+    get:
+      tags:
+        - Demographics
+      summary: Get all demographics
+      description: Retrieves all user demographic information
+      responses:
+        '200':
+          description: Demographics retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Demographics'
+        '500':
+          description: Internal server error
+
+    post:
+      tags:
+        - Demographics
+      summary: Add demographics
+      description: Adds or updates user demographic information
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: '#/components/schemas/DemographicsInput'
+                - type: array
+                  items:
+                    $ref: '#/components/schemas/DemographicsInput'
+      responses:
+        '200':
+          description: Demographics added successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Demographics added
+        '500':
+          description: Internal server error
+
+  /api/learning_purpose:
+    get:
+      tags:
+        - Learning Preferences
+      summary: Get all learning purposes
+      description: Retrieves all user learning purposes
+      responses:
+        '200':
+          description: Learning purposes retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LearningPurpose'
+        '500':
+          description: Internal server error
+
+    post:
+      tags:
+        - Learning Preferences
+      summary: Add learning purposes
+      description: Adds or updates user learning purposes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: '#/components/schemas/LearningPurposeInput'
+                - type: array
+                  items:
+                    $ref: '#/components/schemas/LearningPurposeInput'
+      responses:
+        '200':
+          description: Learning purposes added successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Learning purpose added
+        '500':
+          description: Internal server error
+
+  /api/desired_proficiency:
+    get:
+      tags:
+        - Learning Preferences
+      summary: Get all desired proficiency levels
+      description: Retrieves all user desired proficiency levels
+      responses:
+        '200':
+          description: Desired proficiency levels retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DesiredProficiency'
+        '500':
+          description: Internal server error
+
+    post:
+      tags:
+        - Learning Preferences
+      summary: Add desired proficiency levels
+      description: Adds or updates user desired proficiency levels
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: '#/components/schemas/DesiredProficiencyInput'
+                - type: array
+                  items:
+                    $ref: '#/components/schemas/DesiredProficiencyInput'
+      responses:
+        '200':
+          description: Desired proficiency levels added successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Desired proficiency added
+        '500':
+          description: Internal server error
+
+  /api/learning_styles:
+    get:
+      tags:
+        - Learning Preferences
+      summary: Get all learning styles
+      description: Retrieves all user learning styles
+      responses:
+        '200':
+          description: Learning styles retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LearningStyles'
+        '500':
+          description: Internal server error
+
+    post:
+      tags:
+        - Learning Preferences
+      summary: Add learning styles
+      description: Adds or updates user learning styles
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: '#/components/schemas/LearningStylesInput'
+                - type: array
+                  items:
+                    $ref: '#/components/schemas/LearningStylesInput'
+      responses:
+        '200':
+          description: Learning styles added successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Learning styles added
+        '500':
+          description: Internal server error
+
+  /api/diagnostic_skills/{user_id}/{course_id}:
+    get:
+      tags:
+        - Diagnostic Skills
+      summary: Get diagnostic skills for a specific user and course
+      description: Retrieves diagnostic skills for a specific user and course
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: User UUID
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Course identifier
+      responses:
+        '200':
+          description: Diagnostic skills retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DiagnosticSkills'
+        '500':
+          description: Internal server error
+
+  /api/diagnostic_skills:
+    get:
+      tags:
+        - Diagnostic Skills
+      summary: Get all diagnostic skills
+      description: Retrieves all user diagnostic skills
+      responses:
+        '200':
+          description: Diagnostic skills retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DiagnosticSkills'
+        '500':
+          description: Internal server error
+
+    post:
+      tags:
+        - Diagnostic Skills
+      summary: Add diagnostic skills
+      description: Adds or updates user diagnostic skills
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: '#/components/schemas/DiagnosticSkillsInput'
+                - type: array
+                  items:
+                    $ref: '#/components/schemas/DiagnosticSkillsInput'
+      responses:
+        '200':
+          description: Diagnostic skills added successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Diagnostic skills added
+        '500':
+          description: Internal server error
+
+  /api/user_course_enrollments:
+    get:
+      tags:
+        - Enrollments
+      summary: Get all user course enrollments
+      description: Retrieves all user course enrollments
+      responses:
+        '200':
+          description: User course enrollments retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserCourseEnrollment'
+        '500':
+          description: Internal server error
+
+    post:
+      tags:
+        - Enrollments
+      summary: Add user course enrollments
+      description: Adds or updates user course enrollments
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: '#/components/schemas/UserCourseEnrollmentInput'
+                - type: array
+                  items:
+                    $ref: '#/components/schemas/UserCourseEnrollmentInput'
+      responses:
+        '200':
+          description: User course enrollments added successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: User course enrollments added
+        '500':
+          description: Internal server error
+
+  /api/user_modules:
+    get:
+      tags:
+        - Enrollments
+      summary: Get all user modules
+      description: Retrieves all user module enrollments
+      responses:
+        '200':
+          description: User modules retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserModule'
+        '500':
+          description: Internal server error
+
+    post:
+      tags:
+        - Enrollments
+      summary: Add user modules
+      description: Adds or updates user module enrollments
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: '#/components/schemas/UserModuleInput'
+                - type: array
+                  items:
+                    $ref: '#/components/schemas/UserModuleInput'
+      responses:
+        '200':
+          description: User modules added successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: User modules added
+        '500':
+          description: Internal server error
+
+  /api/user_module_metrics:
+    get:
+      tags:
+        - Metrics
+      summary: Get all user module metrics
+      description: Retrieves all user module performance metrics
+      responses:
+        '200':
+          description: User module metrics retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserModuleMetrics'
+        '500':
+          description: Internal server error
+
+    post:
+      tags:
+        - Metrics
+      summary: Add user module metrics
+      description: Adds or updates user module performance metrics
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: '#/components/schemas/UserModuleMetricsInput'
+                - type: array
+                  items:
+                    $ref: '#/components/schemas/UserModuleMetricsInput'
+      responses:
+        '200':
+          description: User module metrics added successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: User module metrics added
+        '500':
+          description: Internal server error
+
+  /api/quizzes:
+    get:
+      tags:
+        - Quizzes
+      summary: Get all quizzes
+      description: Retrieves all quizzes from the system
+      responses:
+        '200':
+          description: Quizzes retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Quiz'
+        '500':
+          description: Internal server error
+
+    post:
+      tags:
+        - Quizzes
+      summary: Add quizzes
+      description: Adds one or more quizzes to the system
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: '#/components/schemas/QuizInput'
+                - type: array
+                  items:
+                    $ref: '#/components/schemas/QuizInput'
+      responses:
+        '200':
+          description: Quizzes added successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Quizzes added
+                  quizzes:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        quiz_id:
+                          type: string
+                          format: uuid
+                        course_id:
+                          type: string
+        '500':
+          description: Internal server error
+
+  /api/quiz_attempts:
+    get:
+      tags:
+        - Quizzes
+      summary: Get all quiz attempts
+      description: Retrieves all quiz attempts from the system
+      responses:
+        '200':
+          description: Quiz attempts retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/QuizAttempt'
+        '500':
+          description: Internal server error
+
+    post:
+      tags:
+        - Quizzes
+      summary: Add quiz attempts
+      description: Adds one or more quiz attempts to the system
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: '#/components/schemas/QuizAttemptInput'
+                - type: array
+                  items:
+                    $ref: '#/components/schemas/QuizAttemptInput'
+      responses:
+        '200':
+          description: Quiz attempts added successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Quiz attempts added
+                  attempts:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        attempt_id:
+                          type: string
+                          format: uuid
+                        quiz_id:
+                          type: string
+                          format: uuid
+                        user_id:
+                          type: string
+                          format: uuid
+        '500':
+          description: Internal server error
+
+  /api/quiz_question_attempts:
+    get:
+      tags:
+        - Quizzes
+      summary: Get all quiz question attempts
+      description: Retrieves all quiz question attempts from the system
+      responses:
+        '200':
+          description: Quiz question attempts retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/QuizQuestionAttempt'
+        '500':
+          description: Internal server error
+
+    post:
+      tags:
+        - Quizzes
+      summary: Add quiz question attempts
+      description: Adds or updates quiz question attempts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: '#/components/schemas/QuizQuestionAttemptInput'
+                - type: array
+                  items:
+                    $ref: '#/components/schemas/QuizQuestionAttemptInput'
+      responses:
+        '200':
+          description: Quiz question attempts added successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Quiz question attempts added
+                  question_attempts:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        attempt_id:
+                          type: string
+                          format: uuid
+                        question_id:
+                          type: string
+        '400':
+          description: Invalid attempt_id or missing quiz attempt
+        '500':
+          description: Internal server error
+
+  /api/users/{user_id}/learning_data/{course_id}:
+    get:
+      tags:
+        - Combined Endpoints
+      summary: Get combined user learning data
+      description: Retrieves combined user learning data including purpose, proficiency, and styles
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: User UUID
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Course identifier
+      responses:
+        '200':
+          description: User learning data retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserLearningDataResponse'
+        '404':
+          description: User not found
+        '500':
+          description: Internal server error
+
+    post:
+      tags:
+        - Combined Endpoints
+      summary: Create or update combined user learning data
+      description: Creates or updates user learning data across multiple tables
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: User UUID
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Course identifier
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserLearningDataInput'
+      responses:
+        '200':
+          description: User learning data created/updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: User learning data created/updated successfully
+        '404':
+          description: User or course not found
+        '500':
+          description: Internal server error
+
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          description: Unique user identifier
+        name:
+          type: string
+          description: User's full name
+        email:
+          type: string
+          format: email
+          description: User's email address
+        created_at:
+          type: string
+          format: date-time
+          description: Account creation timestamp
+      required:
+        - user_id
+        - name
+        - email
+
+    UserInput:
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          description: Optional user UUID (will be generated if not provided)
+        name:
+          type: string
+          description: User's full name
+          default: User
+        email:
+          type: string
+          format: email
+          description: User's email address (will be generated if not provided)
+
+    Course:
+      type: object
+      properties:
+        course_id:
+          type: string
+          format: uuid
+          description: Unique course identifier
+        course_name:
+          type: string
+          description: Course name
+        course_description:
+          type: string
+          description: Course description
+        created_at:
+          type: string
+          format: date-time
+          description: Course creation timestamp
+        updated_at:
+          type: string
+          format: date-time
+          description: Course last update timestamp
+        is_active:
+          type: boolean
+          description: Whether the course is active
+          default: true
+      required:
+        - course_id
+        - course_name
+
+    CourseInput:
+      type: object
+      properties:
+        course_name:
+          type: string
+          description: Course name
+        course_description:
+          type: string
+          description: Course description
+        created_at:
+          type: string
+          format: date-time
+          description: Course creation timestamp
+        updated_at:
+          type: string
+          format: date-time
+          description: Course last update timestamp
+        is_active:
+          type: boolean
+          description: Whether the course is active
+          default: true
+      required:
+        - course_name
+
+    Module:
+      type: object
+      properties:
+        module_id:
+          type: string
+          format: uuid
+          description: Unique module identifier
+        course_id:
+          type: string
+          description: Associated course identifier
+        module_name:
+          type: string
+          description: Module name
+        module_description:
+          type: string
+          description: Module description
+        order_sequence:
+          type: integer
+          description: Module order in the course
+        estimated_duration_minutes:
+          type: integer
+          description: Estimated completion time in minutes
+        prerequisites:
+          type: array
+          items:
+            type: string
+          description: List of prerequisite modules
+      required:
+        - module_id
+        - course_id
+        - module_name
+        - order_sequence
+
+    ModuleInput:
+      type: object
+      properties:
+        course_id:
+          type: string
+          description: Associated course identifier
+        module_name:
+          type: string
+          description: Module name
+        module_description:
+          type: string
+          description: Module description
+        order_sequence:
+          type: integer
+          description: Module order in the course
+        estimated_duration_minutes:
+          type: integer
+          description: Estimated completion time in minutes
+        prerequisites:
+          type: array
+          items:
+            type: string
+          description: List of prerequisite modules
+          default: []
+      required:
+        - course_id
+        - module_name
+        - order_sequence
+
+    Topic:
+      type: object
+      properties:
+        topic_id:
+          type: string
+          format: uuid
+          description: Unique topic identifier
+        course_id:
+          type: string
+          description: Associated course identifier
+        module_id:
+          type: string
+          description: Associated module identifier
+        topic_name:
+          type: string
+          description: Topic name
+        order_sequence:
+          type: integer
+          description: Topic order in the module
+        estimated_duration_minutes:
+          type: integer
+          description: Estimated completion time in minutes
+        created_at:
+          type: string
+          format: date-time
+          description: Topic creation timestamp
+        updated_at:
+          type: string
+          format: date-time
+          description: Topic last update timestamp
+      required:
+        - topic_id
+        - course_id
+        - module_id
+        - topic_name
+        - order_sequence
+
+    TopicInput:
+      type: object
+      properties:
+        course_id:
+          type: string
+          description: Associated course identifier
+        module_id:
+          type: string
+          description: Associated module identifier
+        topic_name:
+          type: string
+          description: Topic name
+        order_sequence:
+          type: integer
+          description: Topic order in the module
+        estimated_duration_minutes:
+          type: integer
+          description: Estimated completion time in minutes
+        created_at:
+          type: string
+          format: date-time
+          description: Topic creation timestamp
+        updated_at:
+          type: string
+          format: date-time
+          description: Topic last update timestamp
+      required:
+        - course_id
+        - module_id
+        - topic_name
+        - order_sequence
+
+    Demographics:
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          description: User identifier
+        age:
+          type: integer
+          description: User's age
+        education_level:
+          type: string
+          description: User's education level
+        current_year:
+          type: string
+          description: User's current academic year
+        gpa:
+          type: number
+          format: float
+          description: User's GPA
+        courses_completed:
+          type: integer
+          description: Number of courses completed
+          default: 0
+      required:
+        - user_id
+
+    DemographicsInput:
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          description: User identifier
+        age:
+          type: integer
+          description: User's age
+        education_level:
+          type: string
+          description: User's education level
+        current_year:
+          type: string
+          description: User's current academic year
+        gpa:
+          type: number
+          format: float
+          description: User's GPA
+        courses_completed:
+          type: integer
+          description: Number of courses completed
+          default: 0
+      required:
+        - user_id
+
+    LearningPurpose:
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          description: User identifier
+        course_id:
+          type: string
+          description: Course identifier
+        purpose:
+          type: string
+          description: User's learning purpose
+      required:
+        - user_id
+        - course_id
+        - purpose
+
+    LearningPurposeInput:
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          description: User identifier
+        course_id:
+          type: string
+          description: Course identifier
+        purpose:
+          type: string
+          description: User's learning purpose
+      required:
+        - user_id
+        - course_id
+        - purpose
+
+    DesiredProficiency:
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          description: User identifier
+        course_id:
+          type: string
+          description: Course identifier
+        proficiency_level:
+          type: string
+          description: Desired proficiency level
+      required:
+        - user_id
+        - course_id
+        - proficiency_level
+
+    DesiredProficiencyInput:
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          description: User identifier
+        course_id:
+          type: string
+          description: Course identifier
+        proficiency_level:
+          type: string
+          description: Desired proficiency level
+      required:
+        - user_id
+        - course_id
+        - proficiency_level
+
+    LearningStyles:
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          description: User identifier
+        course_id:
+          type: string
+          description: Course identifier
+        session_pref:
+          type: string
+          description: Session preference/learning style
+      required:
+        - user_id
+        - course_id
+        - session_pref
+
+    LearningStylesInput:
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          description: User identifier
+        course_id:
+          type: string
+          description: Course identifier
+        session_pref:
+          type: string
+          description: Session preference/learning style
+      required:
+        - user_id
+        - course_id
+        - session_pref
+
+    DiagnosticSkills:
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          description: User identifier
+        course_id:
+          type: string
+          description: Course identifier
+        skill:
+          type: string
+          description: Skill name
+        score:
+          type: number
+          format: float
+          description: Skill score
+        question_cnt:
+          type: integer
+          description: Number of questions answered
+      required:
+        - user_id
+        - course_id
+        - skill
+
+    DiagnosticSkillsInput:
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          description: User identifier
+        course_id:
+          type: string
+          description: Course identifier
+        skill:
+          type: string
+          description: Skill name
+        score:
+          type: number
+          format: float
+          description: Skill score
+        question_cnt:
+          type: integer
+          description: Number of questions answered
+      required:
+        - user_id
+        - course_id
+        - skill
+
+    UserCourseEnrollment:
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          description: User identifier
+        course_id:
+          type: string
+          description: Course identifier
+        enrollment_date:
+          type: string
+          format: date-time
+          description: Enrollment date
+        completion_date:
+          type: string
+          format: date-time
+          description: Completion date
+        current_status:
+          type: string
+          enum: [not_started, in_progress, completed, paused]
+          description: Current enrollment status
+          default: not_started
+        progress_percentage:
+          type: number
+          format: float
+          description: Progress percentage
+          default: 0.0
+      required:
+        - user_id
+        - course_id
+
+    UserCourseEnrollmentInput:
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          description: User identifier
+        course_id:
+          type: string
+          description: Course identifier
+        enrollment_date:
+          type: string
+          format: date-time
+          description: Enrollment date
+        completion_date:
+          type: string
+          format: date-time
+          description: Completion date
+        current_status:
+          type: string
+          enum: [not_started, in_progress, completed, paused]
+          description: Current enrollment status
+          default: not_started
+        progress_percentage:
+          type: number
+          format: float
+          description: Progress percentage
+          default: 0.0
+      required:
+        - user_id
+        - course_id
+
+    UserModule:
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          description: User identifier
+        course_id:
+          type: string
+          description: Course identifier
+        module_id:
+          type: string
+          description: Module identifier
+        enrollment_date:
+          type: string
+          format: date-time
+          description: Module enrollment date
+        completion_date:
+          type: string
+          format: date-time
+          description: Module completion date
+        current_status:
+          type: string
+          enum: [not_started, in_progress, completed, paused]
+          description: Current module status
+          default: not_started
+        progress_percentage:
+          type: number
+          format: float
+          description: Module progress percentage
+          default: 0.0
+      required:
+        - user_id
+        - course_id
+        - module_id
+
+    UserModuleInput:
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          description: User identifier
+        course_id:
+          type: string
+          description: Course identifier
+        module_id:
+          type: string
+          description: Module identifier
+        enrollment_date:
+          type: string
+          format: date-time
+          description: Module enrollment date
+        completion_date:
+          type: string
+          format: date-time
+          description: Module completion date
+        current_status:
+          type: string
+          enum: [not_started, in_progress, completed, paused]
+          description: Current module status
+          default: not_started
+        progress_percentage:
+          type: number
+          format: float
+          description: Module progress percentage
+          default: 0.0
+      required:
+        - user_id
+        - course_id
+        - module_id
+
+    UserModuleMetrics:
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          description: User identifier
+        course_id:
+          type: string
+          description: Course identifier
+        module_id:
+          type: string
+          description: Module identifier
+        confidence_scores:
+          type: array
+          items:
+            type: number
+            format: float
+          description: Array of confidence scores
+        topics_covered:
+          type: array
+          items:
+            type: string
+          description: List of topics covered
+        flagged_topics:
+          type: array
+          items:
+            type: string
+          description: List of flagged topics
+        time_spent_sessions:
+          type: array
+          items:
+            type: number
+          description: Time spent in each session
+        last_updated:
+          type: string
+          format: date-time
+          description: Last update timestamp
+      required:
+        - user_id
+        - course_id
+        - module_id
+
+    UserModuleMetricsInput:
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          description: User identifier
+        course_id:
+          type: string
+          description: Course identifier
+        module_id:
+          type: string
+          description: Module identifier
+        confidence_scores:
+          type: array
+          items:
+            type: number
+            format: float
+          description: Array of confidence scores
+          default: []
+        topics_covered:
+          type: array
+          items:
+            type: string
+          description: List of topics covered
+          default: []
+        flagged_topics:
+          type: array
+          items:
+            type: string
+          description: List of flagged topics
+          default: []
+        time_spent_sessions:
+          type: array
+          items:
+            type: number
+          description: Time spent in each session
+          default: []
+      required:
+        - user_id
+        - course_id
+        - module_id
+
+    Quiz:
+      type: object
+      properties:
+        quiz_id:
+          type: string
+          format: uuid
+          description: Unique quiz identifier
+        course_id:
+          type: string
+          description: Associated course identifier
+        quiz_type:
+          type: string
+          description: Type of quiz
+        module_id:
+          type: string
+          description: Associated module identifier
+        topic_id:
+          type: string
+          description: Associated topic identifier
+        total_questions:
+          type: integer
+          description: Total number of questions
+        time_limit_minutes:
+          type: integer
+          description: Time limit in minutes
+        passing_score:
+          type: number
+          format: float
+          description: Minimum passing score
+          default: 0.7
+        max_attempts:
+          type: integer
+          description: Maximum number of attempts allowed
+          default: 3
+      required:
+        - quiz_id
+        - course_id
+
+    QuizInput:
+      type: object
+      properties:
+        course_id:
+          type: string
+          description: Associated course identifier
+        quiz_type:
+          type: string
+          description: Type of quiz
+        module_id:
+          type: string
+          description: Associated module identifier
+        topic_id:
+          type: string
+          description: Associated topic identifier
+        total_questions:
+          type: integer
+          description: Total number of questions
+        time_limit_minutes:
+          type: integer
+          description: Time limit in minutes
+        passing_score:
+          type: number
+          format: float
+          description: Minimum passing score
+          default: 0.7
+        max_attempts:
+          type: integer
+          description: Maximum number of attempts allowed
+          default: 3
+      required:
+        - course_id
+
+    QuizAttempt:
+      type: object
+      properties:
+        attempt_id:
+          type: string
+          format: uuid
+          description: Unique attempt identifier
+        quiz_id:
+          type: string
+          format: uuid
+          description: Associated quiz identifier
+        user_id:
+          type: string
+          format: uuid
+          description: User identifier
+        course_id:
+          type: string
+          description: Course identifier
+        attempt_number:
+          type: integer
+          description: Attempt number for this user and quiz
+          default: 1
+        started_at:
+          type: string
+          format: date-time
+          description: Attempt start time
+        completed_at:
+          type: string
+          format: date-time
+          description: Attempt completion time
+        total_time_seconds:
+          type: integer
+          description: Total time spent in seconds
+        score:
+          type: number
+          format: float
+          description: Final score achieved
+      required:
+        - attempt_id
+        - quiz_id
+        - user_id
+        - course_id
+
+    QuizAttemptInput:
+      type: object
+      properties:
+        quiz_id:
+          type: string
+          format: uuid
+          description: Associated quiz identifier
+        user_id:
+          type: string
+          format: uuid
+          description: User identifier
+        course_id:
+          type: string
+          description: Course identifier
+        attempt_number:
+          type: integer
+          description: Attempt number for this user and quiz
+          default: 1
+        started_at:
+          type: string
+          format: date-time
+          description: Attempt start time
+        completed_at:
+          type: string
+          format: date-time
+          description: Attempt completion time
+        total_time_seconds:
+          type: integer
+          description: Total time spent in seconds
+        score:
+          type: number
+          format: float
+          description: Final score achieved
+      required:
+        - quiz_id
+        - user_id
+        - course_id
+
+    QuizQuestionAttempt:
+      type: object
+      properties:
+        attempt_id:
+          type: string
+          format: uuid
+          description: Associated attempt identifier
+        question_id:
+          type: string
+          description: Question identifier
+        user_answer:
+          type: object
+          description: User's answer (JSON format)
+        correct_answer:
+          type: object
+          description: Correct answer (JSON format)
+        is_correct:
+          type: boolean
+          description: Whether the answer was correct
+          default: false
+        retries:
+          type: integer
+          description: Number of retries
+          default: 0
+        time_spent_seconds:
+          type: integer
+          description: Time spent on this question in seconds
+      required:
+        - attempt_id
+        - question_id
+
+    QuizQuestionAttemptInput:
+      type: object
+      properties:
+        attempt_id:
+          type: string
+          format: uuid
+          description: Associated attempt identifier (must exist in quiz_attempts table)
+        question_id:
+          type: string
+          description: Question identifier
+        user_answer:
+          type: object
+          description: User's answer (JSON format)
+        correct_answer:
+          type: object
+          description: Correct answer (JSON format)
+        is_correct:
+          type: boolean
+          description: Whether the answer was correct
+          default: false
+        retries:
+          type: integer
+          description: Number of retries
+          default: 0
+        time_spent_seconds:
+          type: integer
+          description: Time spent on this question in seconds
+      required:
+        - attempt_id
+        - question_id
+
+    UserDataResponse:
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          description: User identifier
+        module_id:
+          type: string
+          description: Module identifier
+        objective_scores:
+          type: array
+          items:
+            type: number
+            format: float
+          description: Array of objective scores
+        confidence_scores:
+          type: array
+          items:
+            type: number
+            format: float
+          description: Array of confidence scores
+        topics_covered:
+          type: array
+          items:
+            type: string
+          description: List of topics covered
+        flagged_topics:
+          type: array
+          items:
+            type: string
+          description: List of flagged topics
+        confidence_previous:
+          type: array
+          items:
+            type: number
+            format: float
+          description: Previous confidence scores
+        skill_level:
+          type: object
+          description: Skill levels mapping
+        learner_purpose:
+          type: string
+          description: Learning purpose
+        desired_proficiency:
+          type: string
+          description: Desired proficiency level
+        session_preference:
+          type: string
+          description: Session preference
+        time_module:
+          type: array
+          items:
+            type: number
+          description: Time spent in module sessions
+      required:
+        - user_id
+        - module_id
+
+    UserDataInput:
+      type: object
+      properties:
+        course_id:
+          type: string
+          description: Course identifier
+          default: course123
+        module_id:
+          type: string
+          description: Module identifier
+        name:
+          type: string
+          description: User name
+          default: User
+        confidence_scores:
+          type: array
+          items:
+            type: number
+            format: float
+          description: Array of confidence scores
+          default: []
+        topics_covered:
+          type: array
+          items:
+            type: string
+          description: List of topics covered
+          default: []
+        flagged_topics:
+          type: array
+          items:
+            type: string
+          description: List of flagged topics
+          default: []
+        time_module:
+          type: array
+          items:
+            type: number
+          description: Time spent in module sessions
+          default: []
+        learner_purpose:
+          type: string
+          description: Learning purpose
+        desired_proficiency:
+          type: string
+          description: Desired proficiency level
+        session_preference:
+          type: string
+          description: Session preference
+        skill_level:
+          type: object
+          description: Skill levels mapping
+        question_cnt:
+          type: integer
+          description: Question count for diagnostic skills
+          default: 0
+
+    UserLearningDataResponse:
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          description: User identifier
+        course_id:
+          type: string
+          description: Course identifier
+        name:
+          type: string
+          description: User's name
+        email:
+          type: string
+          format: email
+          description: User's email
+        purpose:
+          type: string
+          description: Learning purpose
+        proficiency_level:
+          type: string
+          description: Desired proficiency level
+        session_pref:
+          type: string
+          description: Session preference/learning style
+      required:
+        - user_id
+        - course_id
+
+    UserLearningDataInput:
+      type: object
+      properties:
+        purpose:
+          type: string
+          description: Learning purpose
+        proficiency_level:
+          type: string
+          description: Desired proficiency level
+        session_pref:
+          type: string
+          description: Session preference/learning style
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+security:
+  - bearerAuth: []
