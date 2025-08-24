@@ -65,9 +65,7 @@
     <script>
         window.onload = function() {
             // Determine the OpenAPI spec URL - use relative path for GitHub Pages
-            const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-            const specUrl = isLocalhost ? './openapi.yaml' : '../openapi.yaml';
-            
+            const specUrl = './openapi.yaml';
             const ui = SwaggerUIBundle({
                 url: specUrl,
                 dom_id: '#swagger-ui',
